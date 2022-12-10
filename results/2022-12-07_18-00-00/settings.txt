@@ -1,0 +1,12 @@
+only 1 hidden layer
+
+PROCESS_NB = 6
+MUTATION_RATE = 0.05
+INPUT_SIZE = 16
+DENSE_1_SIZE = 12
+OUTPUT_SIZE = 3
+LOOP_REWARD = False
+LOOP_DEATH = True
+
+fixed the spawn of apples
+initWithBestCachedModel

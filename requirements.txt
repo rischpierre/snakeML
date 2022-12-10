@@ -1,0 +1,7 @@
+pygame
+tensorflow==2.10  # last version supported for windows native and compatible with cudatoolkit 11 and cudnn 8
+matplotlib
+black
+aiohttp  # for blackd
+snakeviz
+pytz
