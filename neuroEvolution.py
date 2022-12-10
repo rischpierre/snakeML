@@ -47,7 +47,7 @@ RESULTS_DIR = 'results'
 AGENT_POPULATION_COUNT = 500
 MAX_GENERATIONS = 500
 MAX_STEPS_FOR_NEGATIVE_SCORE = 50
-MAX_STEPS = 1000
+MAX_STEPS = 2000
 
 INPUT_SIZE = 16
 DENSE_1_SIZE = 12
@@ -292,13 +292,13 @@ def testModels(cachedModels=None, useCachedModels=False):
             prediction = agent.predict(state)
             snake.setDirectionFromMove(prediction)
 
-            game.draw(snakeReset=True)
+            game.draw(snakeReset=True, hudInfo=f'Step: {step}')
             if step >= maxStep:
                 keepPlaying = False
                 LOGGER.info('Max step reached')
             if snake.died:
                 keepPlaying = False
-
+            step += 1
 
 def plotGraph(genCounter, fitnessValues):
     plt.scatter(
