@@ -224,10 +224,10 @@ class Snake:
             1 if self.direction == Dir.left else 0,  # -x head
             1 if self.direction == Dir.down else 0,  # +y head
             1 if self.direction == Dir.up else 0,  # -y head
-            relativePosX if relativePosX > 0 else 0,  # +x apple
-            -relativePosX if relativePosX < 0 else 0,  # -x apple
-            relativePosY if relativePosY > 0 else 0,  # +y apple
-            -relativePosY if relativePosY < 0 else 0,  # -y apple
+            1 if self.headPosition[0] < nearestApple.position[0] else 0,  # +x apple
+            1 if self.headPosition[0] > nearestApple.position[0] else 0,  # -x apple
+            1 if self.headPosition[1] < nearestApple.position[1] else 0,  # +y apple
+            1 if self.headPosition[1] > nearestApple.position[1] else 0,  # -y apple
         ]
 
         return state + dangerGrid
