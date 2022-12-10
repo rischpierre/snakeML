@@ -1,5 +1,10 @@
+import os
 import unittest
 import snakeGame
+
+
+# run in headless mode for the tests
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 
 class TestSnakeGame(unittest.TestCase):
@@ -30,17 +35,11 @@ class TestSnakeGame(unittest.TestCase):
         snake.direction = snakeGame.Dir.up
 
         game.snakes = [snake]
-        expectedGrid = [
-            0,
-            0,
-            0,
-            1,
-            0,
-            1,
-            1,
-            0,
-        ]
-        self.assertEqual(snake.getDangerGrid(), expectedGrid)
+
+        expectedGrid = [[0.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 1.0]]
+
+        for a, b in zip(snake.getDangerGrid(), expectedGrid):
+            self.assertListEqual(list(a), list(b))
 
     def test_get_danger_grid_when_snake_is_touching_the_bounds(self):
         game = snakeGame.SnakeGame(appleCount=1, snakeCount=1)
@@ -51,17 +50,10 @@ class TestSnakeGame(unittest.TestCase):
         snake.direction = snakeGame.Dir.right
 
         game.snakes = [snake]
-        expectedGrid = [
-            1,
-            1,
-            1,
-            1,
-            1,
-            1,
-            0,
-            0,
-        ]
-        self.assertEqual(snake.getDangerGrid(), expectedGrid)
+        expectedGrid = [[0, 0, 0], [1, 1, 0], [0, 0, 0]]
+
+        for a, b in zip(snake.getDangerGrid(), expectedGrid):
+            self.assertListEqual(list(a), list(b))
 
 
 if __name__ == "__main__":
