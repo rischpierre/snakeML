@@ -43,7 +43,6 @@ def tracebackHandler(type, value, tb):
 
 sys.excepthook = tracebackHandler
 
-LOGGER.info("Starting training")
 RESULTS_DIR = "results"
 
 AGENT_POPULATION_COUNT = 500
