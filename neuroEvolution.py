@@ -269,7 +269,7 @@ def testModels(cachedModels=None, useCachedModels=False):
     maxStep = 500
 
     for model in cachedModels:
-        LOGGER.info('Testing model: ', model)
+        LOGGER.info(f'Testing model: {model}')
         game = snakeGame.SnakeGame(appleCount=1, snakeCount=1)
         agent = Agent(game)
         agent.load(model)
@@ -394,7 +394,7 @@ def main(model=None, cacheDir=None):
 
     for genCounter in range(1, MAX_GENERATIONS + 1):
         t1 = time.time()
-        LOGGER.info('Generation ', genCounter)
+        LOGGER.info(f'Generation {genCounter}')
 
         manager = multiprocessing.Manager()
         returnData = manager.dict()
@@ -436,12 +436,11 @@ def main(model=None, cacheDir=None):
             if fitness in bestFitnessPerGen and len(bestWeightsPerGen) < len(bestFitnessPerGen):
                 bestWeightsPerGen.append(weights)
 
-        LOGGER.info('Best fitness: ', bestFitnessPerGen)
+        LOGGER.info(f'Best fitness: {bestFitnessPerGen}')
 
         fitnessToGraph.append(fitnessPerGen)
         plotGraph(genCounter, fitnessToGraph)
-
-        LOGGER.info('Generation ', genCounter, ' took ', round((time.time() - t1) / 60, 2), ' min')
+        LOGGER.info(f'Generation {genCounter} done in {time.time() - t1} seconds')
 
 
 if __name__ == "__main__":
@@ -467,7 +466,7 @@ if __name__ == "__main__":
 
     elif args.initWithBestCachedModel:
         cachedModel = sorted(getLastCachedModels())[-1]
-        LOGGER.info('Use best cached model for init: ', cachedModel)
+        LOGGER.info(f'Use best cached model for init: {cachedModel}')
         main(model=cachedModel, cacheDir=CACHE_DIR)
 
     else:
