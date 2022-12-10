@@ -1,13 +1,13 @@
 import unittest
-import geneticLearning
+import neuroEvolution
 
 
-class TestGeneticLearning(unittest.TestCase):
+class TestNeuroEvolution(unittest.TestCase):
     def test_crossOver(self):
-        agent1 = geneticLearning.Agent()
+        agent1 = neuroEvolution.Agent()
         initWeights1 = agent1.getWeights()
 
-        agent2 = geneticLearning.Agent()
+        agent2 = neuroEvolution.Agent()
         initWeights2 = agent2.getWeights()
 
         newWeights = agent1.crossOver(initWeights1, initWeights2)
@@ -24,7 +24,7 @@ class TestGeneticLearning(unittest.TestCase):
 
     def test_mutate_weights(self):
 
-        agent = geneticLearning.Agent()
+        agent = neuroEvolution.Agent()
         initialWeights = agent.getWeights()
 
         rate = 0.1
