@@ -25,6 +25,8 @@ STATE_SIZE = (DANGER_GRID_SIZE * DANGER_GRID_SIZE) - 1 + 8
 
 
 class Dir:
+    """Possible directions for the snake to have"""
+
     left = 0
     right = 1
     up = 2
@@ -32,6 +34,8 @@ class Dir:
 
 
 class Move:
+    """Possible moves for the snake to make"""
+
     left = 0
     right = 1
     forward = 2
@@ -39,17 +43,17 @@ class Move:
 
 
 class Apple:
-    def __init__(self, game):
+    def __init__(self, game: "SnakeGame"):
+        """Create a new apple on the game"""
         self.screen = game.screen
         self.game = game
-        self.position = (0, 0)
-        self.getRandomPosition()
+        self.position = self.getRandomPosition()
 
-    def getRandomPosition(self):
+    def getRandomPosition(self) -> "tuple[int, int]":
+        """Selects a random position for the apple that is not on the snake"""
+        return random.choice([i for i in self.game.wholeGrid if i not in self.game.snakes[0].bodyQueue])
 
-        self.position = random.choice([i for i in self.game.wholeGrid if i not in self.game.snakes[0].bodyQueue])
-
-    def draw(self):
+    def draw(self) -> None:
         pygame.draw.rect(
             surface=self.screen,
             color=FOOD_COLOR,
@@ -61,13 +65,14 @@ class Apple:
             ),
         )
 
-    def respawn(self):
-        self.getRandomPosition()
+    def respawn(self) -> None:
+        """Respawns the apple at a new random position"""
+        self.position = self.getRandomPosition()
         self.draw()
 
 
 class Snake:
-    def __init__(self, screen, randomInit=False):
+    def __init__(self, screen: pygame.Surface, randomInit=False):
         self.screen = screen
         self.initLength = 4
         self.length = self.initLength
@@ -192,7 +197,7 @@ class Snake:
         else:
             return np.rot90(grid, 3)
 
-    def isGoingTowardsTheApple(self, apple):
+    def isGoingTowardsTheApple(self, apple: Apple) -> bool:
         if self.direction == Dir.right:
             return apple.position[0] > self.headPosition[0]
 
@@ -205,17 +210,14 @@ class Snake:
         elif self.direction == Dir.up:
             return apple.position[1] < self.headPosition[1]
 
-    def getState(self, apples):
+    def getState(self, apples) -> "list[float]":
+        """Returns the state of the snake as a list of floats"""
         # size of the danger grid
         size = DANGER_GRID_SIZE * DANGER_GRID_SIZE
         dangerGrid = self.getDangerGrid().reshape(size).tolist()
         dangerGrid.pop(size // 2)  # remove the head of the snake because it is not a danger
 
         nearestApple = self.getNearestApple(apples)
-
-        # relatives positions of the apple in +x, -x, +y, -y
-        relativePosX = (self.headPosition[0] - nearestApple.position[0]) / SNAKE_GRID_SIZE_RELATIVE[0]
-        relativePosY = (self.headPosition[1] - nearestApple.position[1]) / SNAKE_GRID_SIZE_RELATIVE[1]
 
         state = [
             1 if self.direction == Dir.right else 0,  # +x head
@@ -230,7 +232,7 @@ class Snake:
 
         return state + dangerGrid
 
-    def getNearestApple(self, apples) -> Apple:
+    def getNearestApple(self, apples: "list[Apple]") -> Apple:
         nearestApple = None
         nearestDistance = 1000
         for apple in apples:
@@ -238,6 +240,7 @@ class Snake:
             if distance < nearestDistance:
                 nearestApple = apple
                 nearestDistance = distance
+
         return nearestApple or apples[0]
 
     def setDirectionFromMove(self, move: Move):
@@ -291,7 +294,8 @@ class SnakeGame:
         self.gameOver = False
         self.paused = False
 
-    def displayDebugScreen(self, screen):
+    def displayDebugScreen(self, screen: pygame.Surface) -> None:
+        """Displays debug information on the screen containing the state of the snake"""
         if not self.snakes:
             return
 
@@ -366,8 +370,7 @@ class SnakeGame:
             self.displayInfo(text, position=(stateRect[0] + 40, 20 + stateRect[1] + 10 * i), size=10)
 
     @staticmethod
-    def displayGrid(screen):
-
+    def displayGrid(screen: pygame.Surface) -> None:
         for x in range(0, SNAKE_GRID_SIZE_ABSOLUTE[0], GRID_SPACE):
             pygame.draw.line(
                 surface=screen,
@@ -396,13 +399,14 @@ class SnakeGame:
             width=2,
         )
 
-    def createSnakes(self):
+    def createSnakes(self) -> None:
         self.snakes = [Snake(self.screen, self.randomInit) for _ in range(self.snakeCount)]
 
-    def deleteSnakes(self):
+    def deleteSnakes(self) -> None:
         self.snakes = []
 
-    def moveOnEvent(self):
+    def moveOnEvent(self) -> None:
+        """Given a pygame event, move the snake in the corresponding direction"""
         snake = self.snakes[0]
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -436,37 +440,26 @@ class SnakeGame:
                 ):
                     snake.direction = Dir.down
 
-    @staticmethod
-    def moveToList(move):
-        tmpList = [0, 0, 0]
-        tmpList[move] = 1
-        return tmpList
-
-    @staticmethod
-    def directionToList(direction):
-        tmpList = [0, 0, 0, 0]
-        tmpList[direction] = 1
-        return tmpList
-
     def getScore(self) -> int:
         if len(self.snakes) > 0:
             return self.snakes[0].length - self.snakes[0].initLength
         else:
             return 0
 
-    def displayScore(self):
+    def displayScore(self) -> None:
         self.displayInfo(
             f"Score: {self.score}", (SNAKE_GRID_SIZE_ABSOLUTE[0] - 80, SNAKE_GRID_SIZE_ABSOLUTE[1] - 20), 15
         )
 
-    def displayInfo(self, info, position, size=22):
+    def displayInfo(self, info: str, position: "tuple[int, int]", size=22) -> None:
+        """Display custom information on the screen updated each step"""
         font = pygame.font.SysFont("arial", size)
         text = font.render(info, True, (200, 200, 200), BG_COLOR)
         textRect = text.get_rect()
         textRect.center = position
         self.screen.blit(text, textRect)
 
-    def draw(self, snakeReset=False, hudInfo=""):
+    def draw(self, snakeReset=False, hudInfo="") -> None:
 
         self.screen.fill(color=BG_COLOR)
         self.displayGrid(self.screen)
@@ -500,7 +493,7 @@ class SnakeGame:
 
         pygame.display.flip()
 
-    def run(self):
+    def run(self) -> None:
 
         while True:
             self.moveOnEvent()

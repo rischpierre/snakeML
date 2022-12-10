@@ -5,3 +5,4 @@ black
 aiohttp  # for blackd
 snakeviz
 pytz
+numpy

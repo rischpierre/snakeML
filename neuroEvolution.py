@@ -1,23 +1,23 @@
+import argparse
+import copy
 import datetime
-import pytz
+import logging
+import multiprocessing
 import os
-import traceback
+import pytz
+import random
+import re
 import sys
+import time
+import traceback
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-import re
-import time
-import argparse
-import random
-import copy
-import multiprocessing
-import logging
-
-import numpy as np
-import matplotlib.pyplot as plt
 import pygame
 import tensorflow as tf
 from keras import layers
@@ -103,6 +103,8 @@ logging.basicConfig(level=logging.ERROR)
 
 
 class Agent:
+    """Predicts the snake move to do based on the state of the game"""
+
     def __init__(self, game: snakeGame.SnakeGame = None):
         """Initialize the agent and the model with the given game"""
         if game:
@@ -193,19 +195,21 @@ class Agent:
     def load(self, model) -> None:
         self.model.load_weights(model)
 
-    def getWeights(self):
+    def getWeights(self) -> list:
         return self.model.get_weights()
 
-    def setWeights(self, weights):
+    def setWeights(self, weights: list) -> None:
         self.model.set_weights(weights)
 
-    def predict(self, state):
+    def predict(self, state: "list[float]") -> snakeGame.Move:
+        """Predict the move to do based on the state of the game"""
         inputs = np.array([[state]])
         prediction = self.model.predict(inputs, verbose=0)
         return snakeGame.Move.all[prediction.argmax()]
 
     @staticmethod
-    def crossOver(weights1, weights2):
+    def crossOver(weights1: list, weights2: list) -> list:
+        """Combine the 2 given weights in order to merge model characteristics together for the next generation"""
         newWeights = copy.deepcopy(weights1)
         for i in range(len(newWeights)):
 
@@ -227,7 +231,8 @@ class Agent:
         return newWeights
 
     @staticmethod
-    def mutateWeights(weights, rate=MUTATION_RATE):
+    def mutateWeights(weights: list, rate: float = MUTATION_RATE) -> list:
+        """Mutate the given weights in order to add some randomness to the next generation"""
         newWeights = copy.deepcopy(weights)
         for layerWeights in newWeights:
 
@@ -249,7 +254,8 @@ class Agent:
         return newWeights
 
 
-def getLastCachedModels():
+def getLastCachedModels() -> "list[str]":
+    """Get the cached models from the last result directory"""
     regex = re.compile(r"bestAgent_(\d+).h5")
     savedModels = []
 
@@ -266,7 +272,8 @@ def getLastCachedModels():
             return savedModels
 
 
-def testModels(cachedModels=None, useCachedModels=False):
+def testModels(cachedModels: list = None, useCachedModels=False) -> None:
+    """Test the models in order to see how they perform"""
     if useCachedModels:
         cachedModels = getLastCachedModels()
 
@@ -305,7 +312,8 @@ def testModels(cachedModels=None, useCachedModels=False):
             step += 1
 
 
-def plotGraph(genCounter, fitnessValues):
+def plotGraph(genCounter: int, fitnessValues: list) -> None:
+    """Plot the graph of the fitness values and their average, this graph is saved in the results directory"""
     plt.scatter(
         x=[[i] * len(fitnessValues[0]) for i in range(1, genCounter + 1)],
         y=fitnessValues,
@@ -322,7 +330,8 @@ def plotGraph(genCounter, fitnessValues):
     plt.savefig(f"{CACHE_DIR}/learningCurveGraph.jpg")
 
 
-def gameLoop(game, agent):
+def gameLoop(game: snakeGame.SnakeGame, agent: Agent) -> None:
+    """The main game loop where the agent plays the game for every step"""
     step = 1
     while True:
         pygame.event.get()  # Otherwise pygame will freeze
@@ -344,7 +353,16 @@ def gameLoop(game, agent):
         step += 1
 
 
-def trainGeneration(procId, population, bestWeights, bestFitness, returnData, cacheDir, initCachedModel=None):
+def trainGeneration(
+    procId: int,
+    population: int,
+    bestWeights: "list[list]",
+    bestFitness: "list[float]",
+    returnData: "dict[int: list]",
+    cacheDir: str,
+    initCachedModel: str = None,
+) -> None:
+    """Train a generation of agents and return the best fitness and weights"""
 
     # game windows in line on top of the screen
     os.environ["SDL_VIDEO_WINDOW_POS"] = f"{250 * procId},0"
@@ -379,7 +397,9 @@ def trainGeneration(procId, population, bestWeights, bestFitness, returnData, ca
     tf.keras.backend.clear_session()  # to avoid having memory leak
 
 
-def main(model=None, cacheDir=None):
+def train(model: str = None, cacheDir: str = None) -> None:
+    """The main for training the agents"""
+
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
 
@@ -472,7 +492,7 @@ if __name__ == "__main__":
     elif args.initWithBestCachedModel:
         cachedModel = sorted(getLastCachedModels())[-1]
         LOGGER.info(f"Use best cached model for init: {cachedModel}")
-        main(model=cachedModel, cacheDir=CACHE_DIR)
+        train(model=cachedModel, cacheDir=CACHE_DIR)
 
     else:
-        main(model=args.model, cacheDir=CACHE_DIR)
+        train(model=args.model, cacheDir=CACHE_DIR)
