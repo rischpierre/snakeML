@@ -440,7 +440,7 @@ def main(model=None, cacheDir=None):
 
         fitnessToGraph.append(fitnessPerGen)
         plotGraph(genCounter, fitnessToGraph)
-        LOGGER.info(f'Generation {genCounter} done in {time.time() - t1} seconds')
+        LOGGER.info(f'Generation {genCounter} done in {round((time.time() - t1)/60, 2)} minutes')
 
 
 if __name__ == "__main__":
