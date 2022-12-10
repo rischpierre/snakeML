@@ -47,9 +47,7 @@ class Apple:
 
     def getRandomPosition(self):
 
-        self.position = (
-            random.choice([i for i in self.game.wholeGrid if i not in self.game.snakes[0].bodyQueue])
-        )
+        self.position = random.choice([i for i in self.game.wholeGrid if i not in self.game.snakes[0].bodyQueue])
 
     def draw(self):
         pygame.draw.rect(
@@ -280,7 +278,7 @@ class SnakeGame:
         try:
             self.screen = pygame.display.set_mode(self.screenSize)
         except pygame.error:
-            os.environ['SDL_VIDEODRIVER'] = 'dummy'
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
             self.screen = pygame.display.set_mode(self.screenSize)
 
         self.snakeCount = snakeCount

@@ -4,9 +4,9 @@ import os
 import traceback
 import sys
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import re
 import time
@@ -32,6 +32,7 @@ consoleHandler.setFormatter(LOG_FORMATTER)
 LOGGER.addHandler(consoleHandler)
 LOGGER.setLevel(logging.INFO)
 
+
 def tracebackHandler(type, value, tb):
     for line in traceback.TracebackException(type, value, tb).format(chain=True):
         LOGGER.exception(line)
@@ -39,10 +40,11 @@ def tracebackHandler(type, value, tb):
 
     sys.__excepthook__(type, value, tb)  # In order to have the traceback in stdout
 
+
 sys.excepthook = tracebackHandler
 
-LOGGER.info('Starting training')
-RESULTS_DIR = 'results'
+LOGGER.info("Starting training")
+RESULTS_DIR = "results"
 
 AGENT_POPULATION_COUNT = 500
 MAX_GENERATIONS = 500
@@ -74,34 +76,35 @@ LOOP_REWARD = False
 LOOP_DEATH = True
 
 SETTINGS_TO_SAVE = {
-    'AGENT_POPULATION_COUNT': AGENT_POPULATION_COUNT,
-    'MAX_GENERATIONS': MAX_GENERATIONS,
-    'MAX_STEPS_FOR_NEGATIVE_SCORE': MAX_STEPS_FOR_NEGATIVE_SCORE,
-    'MAX_STEPS': MAX_STEPS,
-    'INPUT_SIZE': INPUT_SIZE,
-    'DENSE_1_SIZE': DENSE_1_SIZE,
-    'OUTPUT_SIZE': OUTPUT_SIZE,
-    'MUTATION_RATE': MUTATION_RATE,
-    'MUTATION_WEIGHTS_SIGMA': MUTATION_WEIGHTS_SIGMA,
-    'MUTATION_BIASES_SIGMA': MUTATION_BIASES_SIGMA,
-    'PROCESS_NB': PROCESS_NB,
-    'BEST_AGENT_SELECTION_NUMBER': BEST_AGENT_SELECTION_NUMBER,
-    'AGENTS_NUMBER_RETURNED_BY_PROCESS': AGENTS_NUMBER_RETURNED_BY_PROCESS,
-    'REWARD_APPLE_EATEN': REWARD_APPLE_EATEN,
-    'REWARD_DEATH': REWARD_DEATH,
-    'REWARD_STEP_TOWARDS_APPLE': REWARD_STEP_TOWARDS_APPLE,
-    'REWARD_STEP_AWAY_FROM_APPLE': REWARD_STEP_AWAY_FROM_APPLE,
-    'MAX_STEPS_WITHOUT_EATING': MAX_STEPS_WITHOUT_EATING,
-    'REWARD_STEPS_WITHOUT_EATING': REWARD_STEPS_WITHOUT_EATING,
-    'LOOP_REWARD': LOOP_REWARD,
-    'LOOP_DEATH': LOOP_DEATH,
+    "AGENT_POPULATION_COUNT": AGENT_POPULATION_COUNT,
+    "MAX_GENERATIONS": MAX_GENERATIONS,
+    "MAX_STEPS_FOR_NEGATIVE_SCORE": MAX_STEPS_FOR_NEGATIVE_SCORE,
+    "MAX_STEPS": MAX_STEPS,
+    "INPUT_SIZE": INPUT_SIZE,
+    "DENSE_1_SIZE": DENSE_1_SIZE,
+    "OUTPUT_SIZE": OUTPUT_SIZE,
+    "MUTATION_RATE": MUTATION_RATE,
+    "MUTATION_WEIGHTS_SIGMA": MUTATION_WEIGHTS_SIGMA,
+    "MUTATION_BIASES_SIGMA": MUTATION_BIASES_SIGMA,
+    "PROCESS_NB": PROCESS_NB,
+    "BEST_AGENT_SELECTION_NUMBER": BEST_AGENT_SELECTION_NUMBER,
+    "AGENTS_NUMBER_RETURNED_BY_PROCESS": AGENTS_NUMBER_RETURNED_BY_PROCESS,
+    "REWARD_APPLE_EATEN": REWARD_APPLE_EATEN,
+    "REWARD_DEATH": REWARD_DEATH,
+    "REWARD_STEP_TOWARDS_APPLE": REWARD_STEP_TOWARDS_APPLE,
+    "REWARD_STEP_AWAY_FROM_APPLE": REWARD_STEP_AWAY_FROM_APPLE,
+    "MAX_STEPS_WITHOUT_EATING": MAX_STEPS_WITHOUT_EATING,
+    "REWARD_STEPS_WITHOUT_EATING": REWARD_STEPS_WITHOUT_EATING,
+    "LOOP_REWARD": LOOP_REWARD,
+    "LOOP_DEATH": LOOP_DEATH,
 }
 
 logging.basicConfig(level=logging.ERROR)
 
 
 class Agent:
-    def __init__(self, game=None):
+    def __init__(self, game: snakeGame.SnakeGame = None):
+        """Initialize the agent and the model with the given game"""
         if game:
             self.snake = game.snakes[0]
             self.apple = game.apples[0]
@@ -135,6 +138,7 @@ class Agent:
         self.stepAte = 0
 
     def incrementFitness(self):
+        """For each step, increment the fitness by some positive of negative rewards"""
         if self.snake.died:
             self.fitness += REWARD_DEATH
             return
@@ -164,12 +168,12 @@ class Agent:
     def save(self, model="model.h5"):
         self.model.save(model)
 
-    def saveModelIfBest(self, cacheDir):
-
+    def saveModelIfBest(self, cacheDir: str) -> None:
+        """Save the model on the cacheDir if it's the best model so far"""
         if self.fitness < 0:
             return
 
-        regex = re.compile(r'bestAgent_(\d+).h5')
+        regex = re.compile(r"bestAgent_(\d+).h5")
         savedModels = {}
 
         for model in os.listdir(cacheDir):
@@ -178,7 +182,7 @@ class Agent:
                 continue
             savedModels[int(match.group(1))] = model
 
-        modelPath = os.path.join(cacheDir, f'bestAgent_{int(self.fitness)}.h5')
+        modelPath = os.path.join(cacheDir, f"bestAgent_{int(self.fitness)}.h5")
         if len(savedModels) <= 10:
             self.model.save(modelPath)
         else:
@@ -186,7 +190,7 @@ class Agent:
                 os.remove(os.path.join(cacheDir, savedModels[min(savedModels.keys())]))
                 self.model.save(modelPath)
 
-    def load(self, model):
+    def load(self, model) -> None:
         self.model.load_weights(model)
 
     def getWeights(self):
@@ -246,7 +250,7 @@ class Agent:
 
 
 def getLastCachedModels():
-    regex = re.compile(r'bestAgent_(\d+).h5')
+    regex = re.compile(r"bestAgent_(\d+).h5")
     savedModels = []
 
     for dateDir in sorted(os.listdir(RESULTS_DIR), reverse=True):
@@ -269,7 +273,7 @@ def testModels(cachedModels=None, useCachedModels=False):
     maxStep = 500
 
     for model in cachedModels:
-        LOGGER.info(f'Testing model: {model}')
+        LOGGER.info(f"Testing model: {model}")
         game = snakeGame.SnakeGame(appleCount=1, snakeCount=1)
         agent = Agent(game)
         agent.load(model)
@@ -292,13 +296,14 @@ def testModels(cachedModels=None, useCachedModels=False):
             prediction = agent.predict(state)
             snake.setDirectionFromMove(prediction)
 
-            game.draw(snakeReset=True, hudInfo=f'Step: {step}')
+            game.draw(snakeReset=True, hudInfo=f"Step: {step}")
             if step >= maxStep:
                 keepPlaying = False
-                LOGGER.info('Max step reached')
+                LOGGER.info("Max step reached")
             if snake.died:
                 keepPlaying = False
             step += 1
+
 
 def plotGraph(genCounter, fitnessValues):
     plt.scatter(
@@ -342,7 +347,7 @@ def gameLoop(game, agent):
 def trainGeneration(procId, population, bestWeights, bestFitness, returnData, cacheDir, initCachedModel=None):
 
     # game windows in line on top of the screen
-    os.environ['SDL_VIDEO_WINDOW_POS'] = f"{250 * procId},0"
+    os.environ["SDL_VIDEO_WINDOW_POS"] = f"{250 * procId},0"
 
     game = snakeGame.SnakeGame()
 
@@ -382,7 +387,7 @@ def main(model=None, cacheDir=None):
     fileHandler.setFormatter(LOG_FORMATTER)
     LOGGER.addHandler(fileHandler)
 
-    LOGGER.info('Starting training')
+    LOGGER.info("Starting training")
 
     with open(f"{CACHE_DIR}/settings.txt", "w") as f:
         for key, value in SETTINGS_TO_SAVE.items():
@@ -394,7 +399,7 @@ def main(model=None, cacheDir=None):
 
     for genCounter in range(1, MAX_GENERATIONS + 1):
         t1 = time.time()
-        LOGGER.info(f'Generation {genCounter}')
+        LOGGER.info(f"Generation {genCounter}")
 
         manager = multiprocessing.Manager()
         returnData = manager.dict()
@@ -436,11 +441,11 @@ def main(model=None, cacheDir=None):
             if fitness in bestFitnessPerGen and len(bestWeightsPerGen) < len(bestFitnessPerGen):
                 bestWeightsPerGen.append(weights)
 
-        LOGGER.info(f'Best fitness: {bestFitnessPerGen}')
+        LOGGER.info(f"Best fitness: {bestFitnessPerGen}")
 
         fitnessToGraph.append(fitnessPerGen)
         plotGraph(genCounter, fitnessToGraph)
-        LOGGER.info(f'Generation {genCounter} done in {round((time.time() - t1)/60, 2)} minutes')
+        LOGGER.info(f"Generation {genCounter} done in {round((time.time() - t1)/60, 2)} minutes")
 
 
 if __name__ == "__main__":
@@ -450,7 +455,7 @@ if __name__ == "__main__":
     argParser = argparse.ArgumentParser()
     argParser.add_argument("--model", type=str, help="model to load for training or testing")
     argParser.add_argument(
-        "--initWithBestCachedModel", action='store_true', help="use the best cached model for training"
+        "--initWithBestCachedModel", action="store_true", help="use the best cached model for training"
     )
     argParser.add_argument("--test", action="store_true", help="test the given model")
     argParser.add_argument("--testCached", action="store_true", help="test the cached models in `CACHE_DIR` folder")
@@ -466,7 +471,7 @@ if __name__ == "__main__":
 
     elif args.initWithBestCachedModel:
         cachedModel = sorted(getLastCachedModels())[-1]
-        LOGGER.info(f'Use best cached model for init: {cachedModel}')
+        LOGGER.info(f"Use best cached model for init: {cachedModel}")
         main(model=cachedModel, cacheDir=CACHE_DIR)
 
     else:
