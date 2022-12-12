@@ -7,9 +7,7 @@ import os
 import pytz
 import random
 import re
-import sys
 import time
-import traceback
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,22 +24,7 @@ from keras import models
 import snakeGame
 
 LOGGER = logging.getLogger()
-LOG_FORMATTER = logging.Formatter("%(asctime)s [%(levelname)-5.5s]  %(message)s")
-consoleHandler = logging.StreamHandler()
-consoleHandler.setFormatter(LOG_FORMATTER)
-LOGGER.addHandler(consoleHandler)
-LOGGER.setLevel(logging.INFO)
-
-
-def tracebackHandler(type, value, tb):
-    for line in traceback.TracebackException(type, value, tb).format(chain=True):
-        LOGGER.exception(line)
-    LOGGER.exception(value)
-
-    sys.__excepthook__(type, value, tb)  # In order to have the traceback in stdout
-
-
-sys.excepthook = tracebackHandler
+LOGGER.setLevel(logging.ERROR)
 
 RESULTS_DIR = "results"
 
@@ -56,9 +39,9 @@ OUTPUT_SIZE = 3
 assert OUTPUT_SIZE == len(snakeGame.Move.all)
 assert INPUT_SIZE == snakeGame.STATE_SIZE
 
-MUTATION_RATE = 0.05
-MUTATION_WEIGHTS_SIGMA = 0.3
-MUTATION_BIASES_SIGMA = 0.05
+MUTATION_RATE = 0.1
+MUTATION_WEIGHTS_SIGMA = 0.5
+MUTATION_BIASES_SIGMA = 0.25
 
 PROCESS_NB = int(os.cpu_count() * 1.5)
 BEST_AGENT_SELECTION_NUMBER = 6
@@ -279,7 +262,7 @@ def testModels(cachedModels: list = None, useCachedModels=False) -> None:
     maxStep = 500
 
     for model in cachedModels:
-        LOGGER.info(f"Testing model: {model}")
+        print(f"Testing model: {model}")
         game = snakeGame.SnakeGame(appleCount=1, snakeCount=1)
         agent = Agent(game)
         agent.load(model)
@@ -305,7 +288,7 @@ def testModels(cachedModels: list = None, useCachedModels=False) -> None:
             game.draw(snakeReset=True, hudInfo=f"Step: {step}")
             if step >= maxStep:
                 keepPlaying = False
-                LOGGER.info("Max step reached")
+                print("Max step reached")
             if snake.died:
                 keepPlaying = False
             step += 1
@@ -402,11 +385,7 @@ def train(model: str = None, cacheDir: str = None) -> None:
     if not os.path.exists(CACHE_DIR):
         os.makedirs(CACHE_DIR)
 
-    fileHandler = logging.FileHandler(f"{CACHE_DIR}/resultLog.log")
-    fileHandler.setFormatter(LOG_FORMATTER)
-    LOGGER.addHandler(fileHandler)
-
-    LOGGER.info("Starting training")
+    print("Starting training")
 
     with open(f"{CACHE_DIR}/settings.txt", "w") as f:
         for key, value in SETTINGS_TO_SAVE.items():
@@ -418,7 +397,7 @@ def train(model: str = None, cacheDir: str = None) -> None:
 
     for genCounter in range(1, MAX_GENERATIONS + 1):
         t1 = time.time()
-        LOGGER.info(f"Generation {genCounter}")
+        print(f"Generation {genCounter}")
 
         manager = multiprocessing.Manager()
         returnData = manager.dict()
@@ -460,11 +439,11 @@ def train(model: str = None, cacheDir: str = None) -> None:
             if fitness in bestFitnessPerGen and len(bestWeightsPerGen) < len(bestFitnessPerGen):
                 bestWeightsPerGen.append(weights)
 
-        LOGGER.info(f"Best fitness: {bestFitnessPerGen}")
+        print(f"Best fitness: {bestFitnessPerGen}")
 
         fitnessToGraph.append(fitnessPerGen)
         plotGraph(genCounter, fitnessToGraph)
-        LOGGER.info(f"Generation {genCounter} done in {round((time.time() - t1)/60, 2)} minutes")
+        print(f"Generation {genCounter} done in {round((time.time() - t1)/60, 2)} minutes")
 
 
 if __name__ == "__main__":
@@ -490,7 +469,7 @@ if __name__ == "__main__":
 
     elif args.initWithBestCachedModel:
         cachedModel = sorted(getLastCachedModels())[-1]
-        LOGGER.info(f"Use best cached model for init: {cachedModel}")
+        print(f"Use best cached model for init: {cachedModel}")
         train(model=cachedModel, cacheDir=CACHE_DIR)
 
     else:
