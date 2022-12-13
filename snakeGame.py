@@ -211,26 +211,29 @@ class Snake:
             return apple.position[1] < self.headPosition[1]
 
     def getState(self, apples) -> "list[float]":
-        """Returns the state of the snake as a list of floats"""
-        # size of the danger grid
-        size = DANGER_GRID_SIZE * DANGER_GRID_SIZE
-        dangerGrid = self.getDangerGrid().reshape(size).tolist()
-        dangerGrid.pop(size // 2)  # remove the head of the snake because it is not a danger
+
+        # todo state consist of:
+        # 1. distance to the apple in each axis depending on the direction of the snake
+        # 3. distance to the danger in each direction depending of the direction of the snake
+        # todo think of being in a first person game perspective
 
         nearestApple = self.getNearestApple(apples)
 
-        state = [
-            1 if self.direction == Dir.right else 0,  # +x head
-            1 if self.direction == Dir.left else 0,  # -x head
-            1 if self.direction == Dir.down else 0,  # +y head
-            1 if self.direction == Dir.up else 0,  # -y head
-            1 if self.headPosition[0] < nearestApple.position[0] else 0,  # +x apple
-            1 if self.headPosition[0] > nearestApple.position[0] else 0,  # -x apple
-            1 if self.headPosition[1] < nearestApple.position[1] else 0,  # +y apple
-            1 if self.headPosition[1] > nearestApple.position[1] else 0,  # -y apple
-        ]
+        # todo max those values in order to be grid size independent
+        if self.direction == Dir.right or self.direction == Dir.left:
+            appleRightLeft = (nearestApple.position[0] - self.headPosition[0]) / float(SNAKE_GRID_SIZE_RELATIVE[0]),
+            appleTopBottom = (nearestApple.position[1] - self.headPosition[1]) / float(SNAKE_GRID_SIZE_RELATIVE[1])
+        else:
+            appleRightLeft = (nearestApple.position[0] - self.headPosition[0]) / float(SNAKE_GRID_SIZE_RELATIVE[0]),
+            appleTopBottom = (nearestApple.position[1] - self.headPosition[1]) / float(SNAKE_GRID_SIZE_RELATIVE[1])
 
-        return state + dangerGrid
+        return [
+            appleTopBottom,
+            appleRightLeft,
+            dangerFront,
+            dangerRight,
+            dangerBack,
+        ]
 
     def getNearestApple(self, apples: "list[Apple]") -> Apple:
         nearestApple = None
