@@ -33,8 +33,8 @@ MAX_GENERATIONS = 500
 MAX_STEPS_FOR_NEGATIVE_SCORE = 50
 MAX_STEPS = 2000
 
-INPUT_SIZE = 16
-DENSE_1_SIZE = 12
+INPUT_SIZE = 6
+DENSE_1_SIZE = 6
 OUTPUT_SIZE = 3
 assert OUTPUT_SIZE == len(snakeGame.Move.all)
 assert INPUT_SIZE == snakeGame.STATE_SIZE
@@ -79,6 +79,7 @@ SETTINGS_TO_SAVE = {
     "REWARD_STEPS_WITHOUT_EATING": REWARD_STEPS_WITHOUT_EATING,
     "LOOP_REWARD": LOOP_REWARD,
     "LOOP_DEATH": LOOP_DEATH,
+    "STATE": "Danger and apple distances"
 }
 
 logging.basicConfig(level=logging.ERROR)

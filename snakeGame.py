@@ -21,7 +21,7 @@ BG_COLOR = (20, 20, 20)
 
 # size of the danger grid and relatives positions of the apple in +x, -x, +y, -y
 DANGER_GRID_SIZE = 3
-STATE_SIZE = (DANGER_GRID_SIZE * DANGER_GRID_SIZE) - 1 + 8
+STATE_SIZE = 6
 
 
 class Dir:
