@@ -212,28 +212,112 @@ class Snake:
 
     def getState(self, apples) -> "list[float]":
 
-        # todo state consist of:
+        # state consist of:
         # 1. distance to the apple in each axis depending on the direction of the snake
         # 3. distance to the danger in each direction depending of the direction of the snake
-        # todo think of being in a first person game perspective
+        # think of being in a first person game perspective
+
+        normalizeValue = 10.0
+        detectDistance = 10
 
         nearestApple = self.getNearestApple(apples)
 
-        # todo max those values in order to be grid size independent
-        if self.direction == Dir.right or self.direction == Dir.left:
-            appleRightLeft = (nearestApple.position[0] - self.headPosition[0]) / float(SNAKE_GRID_SIZE_RELATIVE[0]),
-            appleTopBottom = (nearestApple.position[1] - self.headPosition[1]) / float(SNAKE_GRID_SIZE_RELATIVE[1])
-        else:
-            appleRightLeft = (nearestApple.position[0] - self.headPosition[0]) / float(SNAKE_GRID_SIZE_RELATIVE[0]),
-            appleTopBottom = (nearestApple.position[1] - self.headPosition[1]) / float(SNAKE_GRID_SIZE_RELATIVE[1])
+        appleDistanceX = (nearestApple.position[0] - self.headPosition[0]) / normalizeValue
+        appleDistanceY = (nearestApple.position[1] - self.headPosition[1]) / normalizeValue
+        if self.direction == Dir.up:
+            appleRightLeft = appleDistanceX
+            appleTopBottom = -appleDistanceY
 
-        return [
-            appleTopBottom,
-            appleRightLeft,
-            dangerFront,
-            dangerRight,
-            dangerBack,
-        ]
+        elif self.direction == Dir.right:
+            appleRightLeft = appleDistanceY
+            appleTopBottom = appleDistanceX
+
+        elif self.direction == Dir.down:
+            appleRightLeft = -appleDistanceX
+            appleTopBottom = appleDistanceY
+
+        else:
+            appleRightLeft = -appleDistanceY
+            appleTopBottom = -appleDistanceX
+
+        dangerVector = self.getDangerDetectionVector(detectDistance, normalizeValue)
+
+        if self.direction == Dir.right:
+            dangerVector = self.leftRotateList(dangerVector, 1)
+        elif self.direction == Dir.down:
+            dangerVector = self.leftRotateList(dangerVector, 2)
+        elif self.direction == Dir.left:
+            dangerVector = self.leftRotateList(dangerVector, 3)
+
+        return [appleTopBottom, appleRightLeft] + dangerVector
+
+    def getDangerDetectionVector(self, detectDistance, normalizeValue):
+
+        # + y
+        dangerYPlus = detectDistance / normalizeValue
+        for i in range(self.headPosition[1], self.headPosition[1] + detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[1]):
+                    dangerYPlus = (i - self.headPosition[1]) / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+        # - y
+        dangerYMinus = detectDistance / normalizeValue
+        for i in range(self.headPosition[1], self.headPosition[1] - detectDistance, -1):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i < 0):
+                    dangerYMinus = (self.headPosition[1] - i) / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+        # + x
+        dangerXPlus = detectDistance / normalizeValue
+        for i in range(self.headPosition[0], self.headPosition[0] + detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[0]):
+                    dangerXPlus = (i - self.headPosition[0]) / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+        # - x
+        dangerXMinus = detectDistance / normalizeValue
+        for i in range(self.headPosition[0], self.headPosition[0] - detectDistance, -1):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i < 0):
+                    dangerXMinus = (self.headPosition[0] - i) / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+
+        # CW starting from the top
+        return [dangerYMinus, dangerXPlus, dangerYPlus, dangerXMinus]
+
+    @staticmethod
+    def leftRotateList(inputList, nTimes):
+        outputList = []
+        lenInput = len(inputList)
+
+        for item in range(nTimes, lenInput):
+            outputList.append(inputList[item])
+
+        for item in range(0, nTimes):
+            outputList.append(inputList[item])
+
+        return outputList
+
 
     def getNearestApple(self, apples: "list[Apple]") -> Apple:
         nearestApple = None
@@ -328,22 +412,7 @@ class SnakeGame:
             rect=(dangerRect[0] + 1, dangerRect[1], dangerRect[2], dangerRect[3] - 1),
             width=2,
         )
-        dangerGrid = self.snakes[0].getDangerGrid()
 
-        for x, row in enumerate(dangerGrid):
-            for y, _ in enumerate(row):
-                if dangerGrid[x][y] == 1:
-                    color = (255, 255, 255) if (x == 1 and y == 1) else (200, 200, 200)
-                    pygame.draw.rect(
-                        surface=screen,
-                        color=color,
-                        rect=(
-                            dangerRect[0] + 1 + x * GRID_SPACE,
-                            1 + y * GRID_SPACE,
-                            GRID_SPACE,
-                            GRID_SPACE,
-                        ),
-                    )
         # draw the state
         stateRect = (
             dangerRect[0],
@@ -360,14 +429,12 @@ class SnakeGame:
 
         state = self.snakes[0].getState(self.apples)
         info = [
-            f"Head +x {state[0]}",
-            f"Head -x {state[1]}",
-            f"Head +y {state[2]}",
-            f"Head -y {state[3]}",
-            f"Appl +x {state[4]}",
-            f"Appl -x {state[5]}",
-            f"Appl +y {state[6]}",
-            f"Appl -y {state[7]}",
+            f"Apple  Front/Rear  {state[0]}",
+            f"Apple  Left/Right  {state[1]}",
+            f"Danger Front       {state[2]}",
+            f"Danger Right       {state[3]}",
+            f"Danger Bottom      {state[4]}",
+            f"Danger Left        {state[5]}",
         ]
         for i, text in enumerate(info):
             self.displayInfo(text, position=(stateRect[0] + 40, 20 + stateRect[1] + 10 * i), size=10)
