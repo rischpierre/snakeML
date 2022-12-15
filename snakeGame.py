@@ -21,7 +21,7 @@ BG_COLOR = (20, 20, 20)
 
 # size of the danger grid and relatives positions of the apple in +x, -x, +y, -y
 DANGER_GRID_SIZE = 3
-STATE_SIZE = 6
+STATE_SIZE = 10
 
 
 class Dir:
@@ -240,70 +240,126 @@ class Snake:
             appleRightLeft = -appleDistanceY
             appleTopBottom = -appleDistanceX
 
-        dangerVector = self.getDangerDetectionVector(detectDistance, normalizeValue)
+        dangerVectors = self.getDangerDetectionVectors(detectDistance, normalizeValue)
 
         if self.direction == Dir.right:
-            dangerVector = self.leftRotateList(dangerVector, 1)
+            dangerVectors = self.leftRotateList(dangerVectors, 2)
         elif self.direction == Dir.down:
-            dangerVector = self.leftRotateList(dangerVector, 2)
+            dangerVectors = self.leftRotateList(dangerVectors, 4)
         elif self.direction == Dir.left:
-            dangerVector = self.leftRotateList(dangerVector, 3)
+            dangerVectors = self.leftRotateList(dangerVectors, 6)
 
-        return [appleTopBottom, appleRightLeft] + dangerVector
+        return [appleTopBottom, appleRightLeft] + dangerVectors
 
-    def getDangerDetectionVector(self, detectDistance, normalizeValue):
+    def getDangerDetectionVectors(self, detectDistance, normalizeValue):
 
-        # + y
-        dangerYPlus = detectDistance / normalizeValue
+        back = detectDistance / normalizeValue
         for i in range(self.headPosition[1], self.headPosition[1] + detectDistance):
             found = False
             for bodyItem in self.bodyQueue[1:]:
                 # if there is a body item in the way or the border
                 if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[1]):
-                    dangerYPlus = (i - self.headPosition[1]) / normalizeValue
+                    back = (i - self.headPosition[1]) / normalizeValue
                     found = True
                     break
             if found:
                 break
-        # - y
-        dangerYMinus = detectDistance / normalizeValue
+
+        backRight = detectDistance / normalizeValue
+        for i in range(1, detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[0] == self.headPosition[0] + i and bodyItem[1] == self.headPosition[1] + i) or (
+                    self.headPosition[0] + i >= SNAKE_GRID_SIZE_RELATIVE[0]
+                    or self.headPosition[1] + i >= SNAKE_GRID_SIZE_RELATIVE[1]
+                ):
+                    backRight = i / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+
+        backLeft = detectDistance / normalizeValue
+        for i in range(1, detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                # if there is a body item in the way or the border
+                if (bodyItem[0] == self.headPosition[0] - i and bodyItem[1] == self.headPosition[1] + i) or (
+                    self.headPosition[0] - i < 0 or self.headPosition[1] + i >= SNAKE_GRID_SIZE_RELATIVE[1]
+                ):
+                    backLeft = i / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+
+        front = detectDistance / normalizeValue
         for i in range(self.headPosition[1], self.headPosition[1] - detectDistance, -1):
             found = False
             for bodyItem in self.bodyQueue[1:]:
                 # if there is a body item in the way or the border
                 if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i < 0):
-                    dangerYMinus = (self.headPosition[1] - i) / normalizeValue
+                    front = (self.headPosition[1] - i) / normalizeValue
                     found = True
                     break
             if found:
                 break
-        # + x
-        dangerXPlus = detectDistance / normalizeValue
+
+        frontLeft = detectDistance / normalizeValue
+        for i in range(1, detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                if (bodyItem[0] == self.headPosition[0] - i and bodyItem[1] == self.headPosition[1] - i) or (
+                        self.headPosition[0] - i < 0
+                        or self.headPosition[1] - i < 0
+                ):
+                    frontLeft = i / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+
+        frontRight = detectDistance / normalizeValue
+        for i in range(1, detectDistance):
+            found = False
+            for bodyItem in self.bodyQueue[1:]:
+                if (bodyItem[0] == self.headPosition[0] + i and bodyItem[1] == self.headPosition[1] - i) or (
+                    self.headPosition[0] + i >= SNAKE_GRID_SIZE_RELATIVE[0]
+                    or self.headPosition[1] - i < 0
+                ):
+                    frontRight = i / normalizeValue
+                    found = True
+                    break
+            if found:
+                break
+
+        right = detectDistance / normalizeValue
         for i in range(self.headPosition[0], self.headPosition[0] + detectDistance):
             found = False
             for bodyItem in self.bodyQueue[1:]:
                 # if there is a body item in the way or the border
                 if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[0]):
-                    dangerXPlus = (i - self.headPosition[0]) / normalizeValue
+                    right = (i - self.headPosition[0]) / normalizeValue
                     found = True
                     break
             if found:
                 break
-        # - x
-        dangerXMinus = detectDistance / normalizeValue
+
+        left = detectDistance / normalizeValue
         for i in range(self.headPosition[0], self.headPosition[0] - detectDistance, -1):
             found = False
             for bodyItem in self.bodyQueue[1:]:
                 # if there is a body item in the way or the border
                 if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i < 0):
-                    dangerXMinus = (self.headPosition[0] - i) / normalizeValue
+                    left = (self.headPosition[0] - i) / normalizeValue
                     found = True
                     break
             if found:
                 break
 
         # CW starting from the top
-        return [dangerYMinus, dangerXPlus, dangerYPlus, dangerXMinus]
+        return [front, frontRight, right, backRight, back, backLeft, left, frontLeft]
 
     @staticmethod
     def leftRotateList(inputList, nTimes):
@@ -317,7 +373,6 @@ class Snake:
             outputList.append(inputList[item])
 
         return outputList
-
 
     def getNearestApple(self, apples: "list[Apple]") -> Apple:
         nearestApple = None
@@ -432,9 +487,13 @@ class SnakeGame:
             f"Apple  Front/Rear  {state[0]}",
             f"Apple  Left/Right  {state[1]}",
             f"Danger Front       {state[2]}",
-            f"Danger Right       {state[3]}",
-            f"Danger Bottom      {state[4]}",
-            f"Danger Left        {state[5]}",
+            f"Danger FrontRight  {state[3]}",
+            f"Danger Right       {state[4]}",
+            f"Danger BackRight   {state[5]}",
+            f"Danger Back        {state[6]}",
+            f"Danger BackLeft    {state[7]}",
+            f"Danger Left        {state[8]}",
+            f"Danger FrontLeft   {state[9]}",
         ]
         for i, text in enumerate(info):
             self.displayInfo(text, position=(stateRect[0] + 40, 20 + stateRect[1] + 10 * i), size=10)
