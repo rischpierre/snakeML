@@ -240,127 +240,52 @@ class Snake:
             appleRightLeft = -appleDistanceY
             appleTopBottom = -appleDistanceX
 
-        dangerVectors = self.getDangerDetectionVectors(detectDistance, normalizeValue)
+        # Direction of scanning for the danger and the axis bounds of the game border
+        directionToBounds = {
+            (0, -1): (None, 0),  # top
+            (1, -1): (SNAKE_GRID_SIZE_RELATIVE[0], 0),  # topRight
+            (1, 0): (SNAKE_GRID_SIZE_RELATIVE[0], None),  # right
+            (1, 1): (SNAKE_GRID_SIZE_RELATIVE[0], SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomRight
+            (0, 1): (None,SNAKE_GRID_SIZE_RELATIVE[1]),  # bottom
+            (-1, 1): (0, SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomLeft
+            (-1, 0): (0, None),  # left
+            (-1, -1): (0, 0),  # topLeft
+        }
+
+        dangerVector = []
+        for direction, bounds in directionToBounds.items():
+            dangerVector.append(self.getDangerFromDirection(direction, bounds))
 
         if self.direction == Dir.right:
-            dangerVectors = self.leftRotateList(dangerVectors, 2)
+            dangerVector = self.leftRotateList(dangerVector, 2)
         elif self.direction == Dir.down:
-            dangerVectors = self.leftRotateList(dangerVectors, 4)
+            dangerVector = self.leftRotateList(dangerVector, 4)
         elif self.direction == Dir.left:
-            dangerVectors = self.leftRotateList(dangerVectors, 6)
+            dangerVector = self.leftRotateList(dangerVector, 6)
 
-        return [appleTopBottom, appleRightLeft] + dangerVectors
+        return [appleTopBottom, appleRightLeft] + dangerVector
 
-    def getDangerDetectionVectors(self, detectDistance, normalizeValue):
+    def getDangerFromDirection(self, direction, bounds):
 
-        back = detectDistance / normalizeValue
-        for i in range(self.headPosition[1], self.headPosition[1] + detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[1]):
-                    back = (i - self.headPosition[1]) / normalizeValue
-                    found = True
-                    break
-            if found:
+        detectionDistance = 10
+
+        for i in range(1, detectionDistance):
+            gridPos = (direction[0] * i + self.headPosition[0], direction[1] * i + self.headPosition[1])
+            if gridPos in self.bodyQueue:
+                print("Snake body detected {}".format(i))
                 break
 
-        backRight = detectDistance / normalizeValue
-        for i in range(1, detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[0] == self.headPosition[0] + i and bodyItem[1] == self.headPosition[1] + i) or (
-                    self.headPosition[0] + i >= SNAKE_GRID_SIZE_RELATIVE[0]
-                    or self.headPosition[1] + i >= SNAKE_GRID_SIZE_RELATIVE[1]
-                ):
-                    backRight = i / normalizeValue
-                    found = True
+            if bounds[0] is not None:
+                isGridPosLessOrGreater = gridPos[0].__lt__ if bounds[0] == 0 else gridPos[0].__gt__
+                if isGridPosLessOrGreater(bounds[0]):
+                    print('found border in x at dist of {}'.format(i))
                     break
-            if found:
-                break
 
-        backLeft = detectDistance / normalizeValue
-        for i in range(1, detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[0] == self.headPosition[0] - i and bodyItem[1] == self.headPosition[1] + i) or (
-                    self.headPosition[0] - i < 0 or self.headPosition[1] + i >= SNAKE_GRID_SIZE_RELATIVE[1]
-                ):
-                    backLeft = i / normalizeValue
-                    found = True
+            if bounds[1] is not None:
+                isGridPosLessOrGreater = gridPos[1].__lt__ if bounds[1] == 0 else gridPos[1].__gt__
+                if isGridPosLessOrGreater(bounds[1]):
+                    print('found border in y at dist of {}'.format(i))
                     break
-            if found:
-                break
-
-        front = detectDistance / normalizeValue
-        for i in range(self.headPosition[1], self.headPosition[1] - detectDistance, -1):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[0] == self.headPosition[0] and bodyItem[1] == i) or (i < 0):
-                    front = (self.headPosition[1] - i) / normalizeValue
-                    found = True
-                    break
-            if found:
-                break
-
-        frontLeft = detectDistance / normalizeValue
-        for i in range(1, detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                if (bodyItem[0] == self.headPosition[0] - i and bodyItem[1] == self.headPosition[1] - i) or (
-                        self.headPosition[0] - i < 0
-                        or self.headPosition[1] - i < 0
-                ):
-                    frontLeft = i / normalizeValue
-                    found = True
-                    break
-            if found:
-                break
-
-        frontRight = detectDistance / normalizeValue
-        for i in range(1, detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                if (bodyItem[0] == self.headPosition[0] + i and bodyItem[1] == self.headPosition[1] - i) or (
-                    self.headPosition[0] + i >= SNAKE_GRID_SIZE_RELATIVE[0]
-                    or self.headPosition[1] - i < 0
-                ):
-                    frontRight = i / normalizeValue
-                    found = True
-                    break
-            if found:
-                break
-
-        right = detectDistance / normalizeValue
-        for i in range(self.headPosition[0], self.headPosition[0] + detectDistance):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i >= SNAKE_GRID_SIZE_RELATIVE[0]):
-                    right = (i - self.headPosition[0]) / normalizeValue
-                    found = True
-                    break
-            if found:
-                break
-
-        left = detectDistance / normalizeValue
-        for i in range(self.headPosition[0], self.headPosition[0] - detectDistance, -1):
-            found = False
-            for bodyItem in self.bodyQueue[1:]:
-                # if there is a body item in the way or the border
-                if (bodyItem[1] == self.headPosition[1] and bodyItem[0] == i) or (i < 0):
-                    left = (self.headPosition[0] - i) / normalizeValue
-                    found = True
-                    break
-            if found:
-                break
-
-        # CW starting from the top
-        return [front, frontRight, right, backRight, back, backLeft, left, frontLeft]
-
     @staticmethod
     def leftRotateList(inputList, nTimes):
         outputList = []
