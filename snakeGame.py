@@ -513,7 +513,7 @@ class SnakeGame:
         textRect.center = position
         self.screen.blit(text, textRect)
 
-    def draw(self, snakeReset=False, hudInfo="") -> None:
+    def draw(self, snakeReset=False, hudInfo="", displayScore=True) -> None:
 
         self.screen.fill(color=BG_COLOR)
         self.displayGrid(self.screen)
@@ -543,7 +543,8 @@ class SnakeGame:
                 (SNAKE_GRID_SIZE_ABSOLUTE[0] - 200, SNAKE_GRID_SIZE_ABSOLUTE[1] - 20),
                 15,
             )
-        self.displayScore()
+        if displayScore:
+            self.displayScore()
 
         pygame.display.flip()
 
