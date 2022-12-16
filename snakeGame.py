@@ -246,7 +246,7 @@ class Snake:
             (1, -1): (SNAKE_GRID_SIZE_RELATIVE[0], 0),  # topRight
             (1, 0): (SNAKE_GRID_SIZE_RELATIVE[0], None),  # right
             (1, 1): (SNAKE_GRID_SIZE_RELATIVE[0], SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomRight
-            (0, 1): (None,SNAKE_GRID_SIZE_RELATIVE[1]),  # bottom
+            (0, 1): (None, SNAKE_GRID_SIZE_RELATIVE[1]),  # bottom
             (-1, 1): (0, SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomLeft
             (-1, 0): (0, None),  # left
             (-1, -1): (0, 0),  # topLeft
@@ -270,22 +270,22 @@ class Snake:
         detectionDistance = 10
 
         for i in range(1, detectionDistance):
-            gridPos = (direction[0] * i + self.headPosition[0], direction[1] * i + self.headPosition[1])
-            if gridPos in self.bodyQueue:
-                print("Snake body detected {}".format(i))
-                break
+            gridPos = [direction[0] * i + self.headPosition[0], direction[1] * i + self.headPosition[1]]
+            if gridPos in self.bodyQueue[1:]:
+                return i / detectionDistance
 
+            # todo refactor those 2 statements into one.
             if bounds[0] is not None:
-                isGridPosLessOrGreater = gridPos[0].__lt__ if bounds[0] == 0 else gridPos[0].__gt__
+                isGridPosLessOrGreater = gridPos[0].__le__ if bounds[0] == 0 else gridPos[0].__ge__
                 if isGridPosLessOrGreater(bounds[0]):
-                    print('found border in x at dist of {}'.format(i))
-                    break
+                    return i / detectionDistance
 
             if bounds[1] is not None:
-                isGridPosLessOrGreater = gridPos[1].__lt__ if bounds[1] == 0 else gridPos[1].__gt__
+                isGridPosLessOrGreater = gridPos[1].__le__ if bounds[1] == 0 else gridPos[1].__ge__
                 if isGridPosLessOrGreater(bounds[1]):
-                    print('found border in y at dist of {}'.format(i))
-                    break
+                    return i / detectionDistance
+        return 1
+
     @staticmethod
     def leftRotateList(inputList, nTimes):
         outputList = []
@@ -421,7 +421,7 @@ class SnakeGame:
             f"Danger FrontLeft   {state[9]}",
         ]
         for i, text in enumerate(info):
-            self.displayInfo(text, position=(stateRect[0] + 40, 20 + stateRect[1] + 10 * i), size=10)
+            self.displayInfo(text, position=(stateRect[0] + 60, 10 + stateRect[1] + 10 * i), size=10)
 
     @staticmethod
     def displayGrid(screen: pygame.Surface) -> None:
