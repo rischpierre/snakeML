@@ -79,7 +79,7 @@ SETTINGS_TO_SAVE = {
     "REWARD_STEPS_WITHOUT_EATING": REWARD_STEPS_WITHOUT_EATING,
     "LOOP_REWARD": LOOP_REWARD,
     "LOOP_DEATH": LOOP_DEATH,
-    "STATE": "Danger and apple distances"
+    "STATE": "Danger and apple distances using 8 axis"
 }
 
 logging.basicConfig(level=logging.ERROR)

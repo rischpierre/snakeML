@@ -19,4 +19,4 @@ MAX_STEPS_WITHOUT_EATING: 50
 REWARD_STEPS_WITHOUT_EATING: -20
 LOOP_REWARD: False
 LOOP_DEATH: True
-STATE: Danger and apple distances
+STATE: Danger and apple distances using 4 axis
