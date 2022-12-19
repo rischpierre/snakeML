@@ -19,8 +19,30 @@ BG_COLOR = (20, 20, 20)
 
 # size of the danger grid and relatives positions of the apple in +x, -x, +y, -y
 DANGER_GRID_SIZE = 3
-STATE_SIZE = 10
+STATE_SIZE = 6
+DANGER_DETECTION_AXIS = 4  # 4 or 8
 
+if DANGER_DETECTION_AXIS == 4:
+    DIRECTION_TO_BOUNDS_DANGER = {
+        (0, -1): (None, 0),  # top
+        (1, 0): (TILE_NB, None),  # right
+        (0, 1): (None, TILE_NB),  # bottom
+        (-1, 0): (0, None),  # left
+    }
+elif DANGER_DETECTION_AXIS == 8:
+    STATE_SIZE += 4
+    DIRECTION_TO_BOUNDS_DANGER = {
+        (0, -1): (None, 0),  # top
+        (1, -1): (TILE_NB, 0),  # topRight
+        (1, 0): (TILE_NB, None),  # right
+        (1, 1): (TILE_NB, TILE_NB),  # bottomRight
+        (0, 1): (None, TILE_NB),  # bottom
+        (-1, 1): (0, TILE_NB),  # bottomLeft
+        (-1, 0): (0, None),  # left
+        (-1, -1): (0, 0),  # topLeft
+    }
+else:
+    raise NotImplementedError()
 
 class Dir:
     """Possible directions for the snake to have"""
@@ -239,27 +261,18 @@ class Snake:
             appleTopBottom = -appleDistanceX
 
         # Direction of scanning for the danger and the axis bounds of the game border
-        directionToBounds = {
-            (0, -1): (None, 0),  # top
-            (1, -1): (TILE_NB, 0),  # topRight
-            (1, 0): (TILE_NB, None),  # right
-            (1, 1): (TILE_NB, TILE_NB),  # bottomRight
-            (0, 1): (None, TILE_NB),  # bottom
-            (-1, 1): (0, TILE_NB),  # bottomLeft
-            (-1, 0): (0, None),  # left
-            (-1, -1): (0, 0),  # topLeft
-        }
-
         dangerVector = []
-        for direction, bounds in directionToBounds.items():
+        for direction, bounds in DIRECTION_TO_BOUNDS_DANGER.items():
             dangerVector.append(self.getDangerFromDirection(direction, bounds))
 
+        offset = DANGER_DETECTION_AXIS // 4
+
         if self.direction == Dir.right:
-            dangerVector = self.leftRotateList(dangerVector, 2)
+            dangerVector = self.leftRotateList(dangerVector, offset * 1)
         elif self.direction == Dir.down:
-            dangerVector = self.leftRotateList(dangerVector, 4)
+            dangerVector = self.leftRotateList(dangerVector, offset * 2)
         elif self.direction == Dir.left:
-            dangerVector = self.leftRotateList(dangerVector, 6)
+            dangerVector = self.leftRotateList(dangerVector, offset * 3)
 
         return [appleTopBottom, appleRightLeft] + dangerVector
 
@@ -402,18 +415,31 @@ class SnakeGame:
         )
 
         state = self.snakes[0].getState(self.apples)
-        info = [
-            f"Apple  Front/Rear  {state[0]}",
-            f"Apple  Left/Right  {state[1]}",
-            f"Danger Front       {state[2]}",
-            f"Danger FrontRight  {state[3]}",
-            f"Danger Right       {state[4]}",
-            f"Danger BackRight   {state[5]}",
-            f"Danger Back        {state[6]}",
-            f"Danger BackLeft    {state[7]}",
-            f"Danger Left        {state[8]}",
-            f"Danger FrontLeft   {state[9]}",
-        ]
+        if DANGER_DETECTION_AXIS == 4:
+            info = [
+                f"Apple  Front/Rear  {state[0]}",
+                f"Apple  Left/Right  {state[1]}",
+                f"Danger Front       {state[2]}",
+                f"Danger Right       {state[3]}",
+                f"Danger Back        {state[4]}",
+                f"Danger Left        {state[5]}",
+            ]
+        elif DANGER_DETECTION_AXIS == 8:
+            info = [
+                f"Apple  Front/Rear  {state[0]}",
+                f"Apple  Left/Right  {state[1]}",
+                f"Danger Front       {state[2]}",
+                f"Danger FrontRight  {state[3]}",
+                f"Danger Right       {state[4]}",
+                f"Danger BackRight   {state[5]}",
+                f"Danger Back        {state[6]}",
+                f"Danger BackLeft    {state[7]}",
+                f"Danger Left        {state[8]}",
+                f"Danger FrontLeft   {state[9]}",
+            ]
+        else:
+            raise Exception("Invalid DANGER_DETECTION_AXIS")
+
         for i, text in enumerate(info):
             self.displayInfo(text, position=(stateRect[0] + 60, 10 + stateRect[1] + 10 * i), size=10)
 
