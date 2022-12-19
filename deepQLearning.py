@@ -22,7 +22,7 @@ def getGameImage():
 
     # reduce the size of the image into 10x10 pixels and convert it to grayscale
     # keep the green channel to differentiate the snake from the food
-    image = image[::snakeGame.GRID_SPACE, ::snakeGame.GRID_SPACE, 1]
+    image = image[::snakeGame.TILE_SIZE, ::snakeGame.TILE_SIZE, 1]
 
     # The is rotated 90 degrees and flipped, so we need to rotate it back
     image = np.rot90(image, -1)

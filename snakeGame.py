@@ -3,18 +3,21 @@ import random
 import pygame
 import numpy as np
 
-DISPLAY_GRID_SIZE = (250, 250)
-DISPLAY_GRID_SIZE_DEBUG = (500, 250)
-SNAKE_GRID_SIZE_ABSOLUTE = (250, 250)
-GRID_SPACE = 25
-assert SNAKE_GRID_SIZE_ABSOLUTE[0] % GRID_SPACE == 0
-assert SNAKE_GRID_SIZE_ABSOLUTE[1] % GRID_SPACE == 0
+WINDOW_SIZE = (250, 250)
+WINDOW_DEBUG_SIZE = list(WINDOW_SIZE)
+WINDOW_DEBUG_SIZE[0] += 250
+
+TILE_SIZE = 25
+
+assert WINDOW_SIZE[0] % TILE_SIZE == 0
+assert WINDOW_SIZE[1] % TILE_SIZE == 0
 
 SPEED = 2
-SNAKE_GRID_SIZE_RELATIVE = (
-    int(SNAKE_GRID_SIZE_ABSOLUTE[0] / GRID_SPACE),
-    int(SNAKE_GRID_SIZE_ABSOLUTE[1] / GRID_SPACE),
+TILE_NUMBER = (
+    int(WINDOW_SIZE[0] / TILE_SIZE),
+    int(WINDOW_SIZE[1] / TILE_SIZE),
 )
+
 GRID_COLOR = (25, 25, 25)
 FOOD_COLOR = (200, 100, 25)
 BG_COLOR = (20, 20, 20)
@@ -58,10 +61,10 @@ class Apple:
             surface=self.screen,
             color=FOOD_COLOR,
             rect=(
-                self.position[0] * GRID_SPACE,
-                self.position[1] * GRID_SPACE,
-                GRID_SPACE,
-                GRID_SPACE,
+                self.position[0] * TILE_SIZE,
+                self.position[1] * TILE_SIZE,
+                TILE_SIZE,
+                TILE_SIZE,
             ),
         )
 
@@ -78,8 +81,8 @@ class Snake:
         self.length = self.initLength
         self.defaultColor = (200, 200, 200, 200)
         self.color = self.defaultColor
-        self.height = GRID_SPACE
-        self.width = GRID_SPACE
+        self.height = TILE_SIZE
+        self.width = TILE_SIZE
         self.direction = Dir.right
         self.died = False
         self.justAte = False
@@ -91,13 +94,13 @@ class Snake:
     def setStartHeadPosition(randomInit=False) -> "list[int]":
         if randomInit:
             return [
-                random.randint(1, SNAKE_GRID_SIZE_RELATIVE[0] - 1),
-                random.randint(1, SNAKE_GRID_SIZE_RELATIVE[1] - 1),
+                random.randint(1, TILE_NUMBER[0] - 1),
+                random.randint(1, TILE_NUMBER[1] - 1),
             ]
 
         return [
-            int(SNAKE_GRID_SIZE_RELATIVE[0] / 2),
-            int(SNAKE_GRID_SIZE_RELATIVE[1] / 2),
+            int(TILE_NUMBER[0] / 2),
+            int(TILE_NUMBER[1] / 2),
         ]
 
     def getStartBodyQueue(self):
@@ -118,8 +121,8 @@ class Snake:
                 surface=self.screen,
                 color=self.color,
                 rect=(
-                    bodyElement[0] * GRID_SPACE,
-                    bodyElement[1] * GRID_SPACE,
+                    bodyElement[0] * TILE_SIZE,
+                    bodyElement[1] * TILE_SIZE,
                     self.height,
                     self.width,
                 ),
@@ -129,7 +132,7 @@ class Snake:
     def isDead(self) -> bool:
         for i in range(2):
             # check if snake hit the corners
-            if self.headPosition[i] >= SNAKE_GRID_SIZE_RELATIVE[i]:
+            if self.headPosition[i] >= TILE_NUMBER[i]:
                 self.died = True
                 break
 
@@ -179,7 +182,7 @@ class Snake:
         for x, gridX in enumerate(range(headPosition[0] - offset, headPosition[0] + offset + 1)):
             for y, gridY in enumerate(range(headPosition[1] - offset, headPosition[1] + offset + 1)):
                 danger = 0
-                if not 0 <= gridX < SNAKE_GRID_SIZE_RELATIVE[0] or not 0 <= gridY < SNAKE_GRID_SIZE_RELATIVE[1]:
+                if not 0 <= gridX < TILE_NUMBER[0] or not 0 <= gridY < TILE_NUMBER[1]:
                     danger = 1
                 for bodyItem in self.bodyQueue:
                     if bodyItem[0] == gridX and bodyItem[1] == gridY:
@@ -243,11 +246,11 @@ class Snake:
         # Direction of scanning for the danger and the axis bounds of the game border
         directionToBounds = {
             (0, -1): (None, 0),  # top
-            (1, -1): (SNAKE_GRID_SIZE_RELATIVE[0], 0),  # topRight
-            (1, 0): (SNAKE_GRID_SIZE_RELATIVE[0], None),  # right
-            (1, 1): (SNAKE_GRID_SIZE_RELATIVE[0], SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomRight
-            (0, 1): (None, SNAKE_GRID_SIZE_RELATIVE[1]),  # bottom
-            (-1, 1): (0, SNAKE_GRID_SIZE_RELATIVE[1]),  # bottomLeft
+            (1, -1): (TILE_NUMBER[0], 0),  # topRight
+            (1, 0): (TILE_NUMBER[0], None),  # right
+            (1, 1): (TILE_NUMBER[0], TILE_NUMBER[1]),  # bottomRight
+            (0, 1): (None, TILE_NUMBER[1]),  # bottom
+            (-1, 1): (0, TILE_NUMBER[1]),  # bottomLeft
             (-1, 0): (0, None),  # left
             (-1, -1): (0, 0),  # topLeft
         }
@@ -338,12 +341,12 @@ class SnakeGame:
         pygame.init()
 
         self.wholeGrid = []
-        for x in range(0, SNAKE_GRID_SIZE_RELATIVE[0]):
-            for y in range(0, SNAKE_GRID_SIZE_RELATIVE[1]):
+        for x in range(0, TILE_NUMBER[0]):
+            for y in range(0, TILE_NUMBER[1]):
                 self.wholeGrid.append((x, y))
 
         self.score = 0
-        self.screenSize = DISPLAY_GRID_SIZE_DEBUG if displayDebugScreen else DISPLAY_GRID_SIZE
+        self.screenSize = WINDOW_DEBUG_SIZE if displayDebugScreen else WINDOW_SIZE
 
         try:
             self.screen = pygame.display.set_mode(self.screenSize)
@@ -368,7 +371,7 @@ class SnakeGame:
 
         # Debug screen
         debugRect = (
-            SNAKE_GRID_SIZE_ABSOLUTE[0],
+            WINDOW_SIZE[0],
             1,
             self.screenSize[0],
             self.screenSize[1],
@@ -383,8 +386,8 @@ class SnakeGame:
         dangerRect = (
             debugRect[0] + 1,
             debugRect[1] + 1,
-            5 * GRID_SPACE,
-            5 * GRID_SPACE,
+            5 * TILE_SIZE,
+            5 * TILE_SIZE,
         )
         pygame.draw.rect(
             surface=screen,
@@ -398,7 +401,7 @@ class SnakeGame:
             dangerRect[0],
             dangerRect[3],
             dangerRect[2],
-            dangerRect[3] + 6 * GRID_SPACE,
+            dangerRect[3] + 6 * TILE_SIZE,
         )
         pygame.draw.rect(
             surface=screen,
@@ -425,20 +428,20 @@ class SnakeGame:
 
     @staticmethod
     def displayGrid(screen: pygame.Surface) -> None:
-        for x in range(0, SNAKE_GRID_SIZE_ABSOLUTE[0], GRID_SPACE):
+        for x in range(0, WINDOW_SIZE[0], TILE_SIZE):
             pygame.draw.line(
                 surface=screen,
                 color=GRID_COLOR,
                 start_pos=(x, 0),
-                end_pos=(x, SNAKE_GRID_SIZE_ABSOLUTE[0]),
+                end_pos=(x, WINDOW_SIZE[0]),
             )
 
-        for y in range(0, SNAKE_GRID_SIZE_ABSOLUTE[1], GRID_SPACE):
+        for y in range(0, WINDOW_SIZE[1], TILE_SIZE):
             pygame.draw.line(
                 surface=screen,
                 color=GRID_COLOR,
                 start_pos=(0, y),
-                end_pos=(SNAKE_GRID_SIZE_ABSOLUTE[1], y),
+                end_pos=(WINDOW_SIZE[1], y),
             )
 
         pygame.draw.rect(
@@ -447,8 +450,8 @@ class SnakeGame:
             rect=(
                 1,
                 1,
-                SNAKE_GRID_SIZE_ABSOLUTE[0] - 1,
-                SNAKE_GRID_SIZE_ABSOLUTE[1] - 1,
+                WINDOW_SIZE[0] - 1,
+                WINDOW_SIZE[1] - 1,
             ),
             width=2,
         )
@@ -501,9 +504,7 @@ class SnakeGame:
             return 0
 
     def displayScore(self) -> None:
-        self.displayInfo(
-            f"Score: {self.score}", (SNAKE_GRID_SIZE_ABSOLUTE[0] - 80, SNAKE_GRID_SIZE_ABSOLUTE[1] - 20), 15
-        )
+        self.displayInfo(f"Score: {self.score}", (WINDOW_SIZE[0] - 80, WINDOW_SIZE[1] - 20), 15)
 
     def displayInfo(self, info: str, position: "tuple[int, int]", size=22) -> None:
         """Display custom information on the screen updated each step"""
@@ -540,7 +541,7 @@ class SnakeGame:
         if hudInfo:
             self.displayInfo(
                 hudInfo,
-                (SNAKE_GRID_SIZE_ABSOLUTE[0] - 200, SNAKE_GRID_SIZE_ABSOLUTE[1] - 20),
+                (WINDOW_SIZE[0] - 200, WINDOW_SIZE[1] - 20),
                 15,
             )
         if displayScore:
