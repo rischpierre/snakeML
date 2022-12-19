@@ -3,8 +3,8 @@ import random
 import pygame
 import numpy as np
 
-
-TILE_NB = 10  # the game is square
+# the game is square
+TILE_NB = 20
 TILE_SIZE = 25
 WINDOW_SIZE = (TILE_SIZE * TILE_NB, TILE_SIZE * TILE_NB)
 
@@ -272,16 +272,12 @@ class Snake:
             if gridPos in self.bodyQueue[1:]:
                 return i / detectionDistance
 
-            # todo refactor those 2 statements into one.
-            if bounds[0] is not None:
-                isGridPosLessOrGreater = gridPos[0].__le__ if bounds[0] == 0 else gridPos[0].__ge__
-                if isGridPosLessOrGreater(bounds[0]):
-                    return i / detectionDistance
+            for xy in range(2):
+                if bounds[xy] is not None:
+                    isGridPosLessOrGreater = gridPos[xy].__le__ if bounds[xy] == 0 else gridPos[xy].__ge__
+                    if isGridPosLessOrGreater(bounds[xy]):
+                        return i / detectionDistance
 
-            if bounds[1] is not None:
-                isGridPosLessOrGreater = gridPos[1].__le__ if bounds[1] == 0 else gridPos[1].__ge__
-                if isGridPosLessOrGreater(bounds[1]):
-                    return i / detectionDistance
         return 1
 
     @staticmethod
