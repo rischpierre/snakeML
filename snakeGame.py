@@ -3,20 +3,15 @@ import random
 import pygame
 import numpy as np
 
-WINDOW_SIZE = (250, 250)
+
+TILE_NB = 10  # the game is square
+TILE_SIZE = 25
+WINDOW_SIZE = (TILE_SIZE * TILE_NB, TILE_SIZE * TILE_NB)
+
 WINDOW_DEBUG_SIZE = list(WINDOW_SIZE)
 WINDOW_DEBUG_SIZE[0] += 250
 
-TILE_SIZE = 25
-
-assert WINDOW_SIZE[0] % TILE_SIZE == 0
-assert WINDOW_SIZE[1] % TILE_SIZE == 0
-
 SPEED = 2
-TILE_NUMBER = (
-    int(WINDOW_SIZE[0] / TILE_SIZE),
-    int(WINDOW_SIZE[1] / TILE_SIZE),
-)
 
 GRID_COLOR = (25, 25, 25)
 FOOD_COLOR = (200, 100, 25)
@@ -94,13 +89,13 @@ class Snake:
     def setStartHeadPosition(randomInit=False) -> "list[int]":
         if randomInit:
             return [
-                random.randint(1, TILE_NUMBER[0] - 1),
-                random.randint(1, TILE_NUMBER[1] - 1),
+                random.randint(1, TILE_NB - 1),
+                random.randint(1, TILE_NB - 1),
             ]
 
         return [
-            int(TILE_NUMBER[0] / 2),
-            int(TILE_NUMBER[1] / 2),
+            int(TILE_NB / 2),
+            int(TILE_NB / 2),
         ]
 
     def getStartBodyQueue(self):
@@ -132,7 +127,7 @@ class Snake:
     def isDead(self) -> bool:
         for i in range(2):
             # check if snake hit the corners
-            if self.headPosition[i] >= TILE_NUMBER[i]:
+            if self.headPosition[i] >= TILE_NB:
                 self.died = True
                 break
 
@@ -182,7 +177,7 @@ class Snake:
         for x, gridX in enumerate(range(headPosition[0] - offset, headPosition[0] + offset + 1)):
             for y, gridY in enumerate(range(headPosition[1] - offset, headPosition[1] + offset + 1)):
                 danger = 0
-                if not 0 <= gridX < TILE_NUMBER[0] or not 0 <= gridY < TILE_NUMBER[1]:
+                if not 0 <= gridX < TILE_NB or not 0 <= gridY < TILE_NB:
                     danger = 1
                 for bodyItem in self.bodyQueue:
                     if bodyItem[0] == gridX and bodyItem[1] == gridY:
@@ -246,11 +241,11 @@ class Snake:
         # Direction of scanning for the danger and the axis bounds of the game border
         directionToBounds = {
             (0, -1): (None, 0),  # top
-            (1, -1): (TILE_NUMBER[0], 0),  # topRight
-            (1, 0): (TILE_NUMBER[0], None),  # right
-            (1, 1): (TILE_NUMBER[0], TILE_NUMBER[1]),  # bottomRight
-            (0, 1): (None, TILE_NUMBER[1]),  # bottom
-            (-1, 1): (0, TILE_NUMBER[1]),  # bottomLeft
+            (1, -1): (TILE_NB, 0),  # topRight
+            (1, 0): (TILE_NB, None),  # right
+            (1, 1): (TILE_NB, TILE_NB),  # bottomRight
+            (0, 1): (None, TILE_NB),  # bottom
+            (-1, 1): (0, TILE_NB),  # bottomLeft
             (-1, 0): (0, None),  # left
             (-1, -1): (0, 0),  # topLeft
         }
@@ -341,8 +336,8 @@ class SnakeGame:
         pygame.init()
 
         self.wholeGrid = []
-        for x in range(0, TILE_NUMBER[0]):
-            for y in range(0, TILE_NUMBER[1]):
+        for x in range(0, TILE_NB):
+            for y in range(0, TILE_NB):
                 self.wholeGrid.append((x, y))
 
         self.score = 0
