@@ -4,7 +4,7 @@ import pygame
 import numpy as np
 
 # the game is square
-TILE_NB = 20
+TILE_NB = 15
 TILE_SIZE = 25
 WINDOW_SIZE = (TILE_SIZE * TILE_NB, TILE_SIZE * TILE_NB)
 
