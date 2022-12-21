@@ -301,6 +301,7 @@ def plotGraph(genCounter: int, fitnessValues: list) -> None:
         x=[[i] * len(fitnessValues[0]) for i in range(1, genCounter + 1)],
         y=fitnessValues,
         c="blue",
+        alpha=0.05,
     )
 
     average = [sum(i) / len(i) for i in fitnessValues]
